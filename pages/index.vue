@@ -20,7 +20,8 @@
       </div>
       <div class="mx-4 my-2">
         <input
-          type="text"
+          type="search"
+          role="search"
           class="border dark:border-gray-400 dark:bg-slate-700 bg-slate-500 text-white border-gray-700 rounded w-full py-2 px-3"
           v-model="searchTerm"
           placeholder="Enter a word to search"
@@ -54,20 +55,45 @@
         </svg>
         <span class="dark:text-gray-200 text-gray-800">Loading...</span>
       </div>
+      <!--show warning alert if isError -->
       <div v-if="isError" class="mx-4 my-2">
-        <p>Something went wrong. Please try again.</p>
+        <div
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+          role="alert"
+        >
+          <strong class="font-bold"> <Icon name="ic:outline-warning" /> Error!</strong>
+          <span class="block sm:inline"> Something went wrong.</span>
+          <span class="block sm:inline">
+            The word you're searching is not there! or empty!</span
+          >
+          <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+            <svg
+              class="fill-current h-6 w-6 text-red-500"
+              role="button"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              @click="isError = false"
+            >
+              <title>Close</title>
+              <path
+                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"
+              />
+            </svg>
+          </span>
+        </div>
       </div>
-
       <div v-if="wordData" class="mx-4 my-2">
         <div v-for="(word, index) in wordData" :key="index">
-          <h1 class="text-2xl font-bold">{{ word.word }}</h1>
+          <h1 class="text-2xl font-bold dark:text-gray-200 text-gray-800">
+            {{ word.word }}
+          </h1>
           <p class="dark:text-gray-500 text-gray-900 italic">{{ word.origin }}</p>
           <div>
             <p class="text-lg font-medium dark:text-gray-200 text-gray-800">Phonetics:</p>
             <!-- phonetic text -->
 
             <div class="flex items-center">
-              <span class="mr-2 dark:text-gray-600 text-gray-800">{{
+              <span class="mr-2 dark:text-gray-200 text-gray-800">{{
                 word.phonetics[0].text
               }}</span>
               <audio controls class="outline-none">
@@ -82,24 +108,33 @@
             </p>
             <ul class="list-disc pl-4">
               <li v-for="(meaning, index) in word.meanings" :key="index">
-                <p class="font-medium">{{ meaning.partOfSpeech }}</p>
+                <p class="font-medium dark:text-gray-200 text-gray-800">
+                  {{ meaning.partOfSpeech }}
+                </p>
                 <ul class="list-disc pl-4">
                   <li v-for="(definition, index) in meaning.definitions" :key="index">
-                    <p class="dark:text-gray-600 text-gray-800">
+                    <p class="dark:text-blue-600 text-gray-800">
                       {{ definition.definition }}
                     </p>
                     <p
                       v-if="definition.example"
                       class="italic dark:text-gray-500 text-gray-900"
                     >
-                      Example: {{ definition.example }}
+                      Example:
+                      <span class="dark:text-gray-300 text-gray-800">{{
+                        definition.example
+                      }}</span>
                     </p>
                     <div v-if="definition.synonyms.length > 0">
                       <p class="font-medium dark:text-gray-200 text-gray-800">
                         Synonyms:
                       </p>
                       <ul class="list-disc pl-4">
-                        <li v-for="(synonym, index) in definition.synonyms" :key="index">
+                        <li
+                          v-for="(synonym, index) in definition.synonyms"
+                          :key="index"
+                          class="dark:text-gray-200 text-gray-800"
+                        >
                           {{ synonym }}
                         </li>
                       </ul>
@@ -109,7 +144,11 @@
                         Antonyms:
                       </p>
                       <ul class="list-disc pl-4">
-                        <li v-for="(antonym, index) in definition.antonyms" :key="index">
+                        <li
+                          v-for="(antonym, index) in definition.antonyms"
+                          :key="index"
+                          class="dark:text-gray-200 text-gray-800"
+                        >
                           {{ antonym }}
                         </li>
                       </ul>
@@ -155,13 +194,20 @@ export default {
       this.isError = false;
 
       try {
-        const response = await fetch(
-          `https://api.dictionaryapi.dev/api/v2/entries/en_US/${this.searchTerm}`
-        );
-        const data = await response.json();
-
-        this.wordData = data;
-        console.log(data);
+        if (this.searchTerm.length > 0) {
+          const response = await fetch(
+            `https://api.dictionaryapi.dev/api/v2/entries/en/${this.searchTerm}`
+          );
+          if (response.ok) {
+            this.wordData = await response.json();
+          } else {
+            this.wordData = null;
+            this.isError = true;
+          }
+        } else {
+          this.wordData = null;
+          this.isError = true;
+        }
       } catch (error) {
         console.error(error);
         this.isError = true;
