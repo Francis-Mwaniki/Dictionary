@@ -34,26 +34,42 @@
           >Press Enter to search</span
         >
       </div>
-
-      <!-- loading spinner using tailwindcss -->
-      <div v-if="isLoading" class="mx-4 my-2">
-        <svg
-          class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
+      <div class="flex justify-start items-center mx-auto gap-x-2">
+        <!-- loading spinner using tailwindcss -->
+        <div v-if="isLoading" class="mx-4 my-2">
+          <svg
+            class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v8H4z"
+            ></path>
+          </svg>
+          <span class="dark:text-gray-200 text-gray-800">Loading...</span>
+        </div>
+        <!-- clear icon   -->
+        <button
+          class="mx-4 my-2 cursor-pointer hover:bg-blue-600 dark:bg-slate-700 bg-blue-600 px-2 py-1 rounded dark:text-gray-200 text-gray-800"
+          @click="clearSearch"
         >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
-        <span class="dark:text-gray-200 text-gray-800">Loading...</span>
+          <Icon
+            name="ic:outline-refresh"
+            class="dark:text-gray-200 text-gray-800 h-7 w-7"
+          />
+          <span class="text-white"> clear</span>
+        </button>
       </div>
       <!--show warning alert if isError -->
       <div v-if="isError" class="mx-4 my-2">
@@ -103,6 +119,19 @@
             </div>
           </div>
           <div>
+            <!-- create button for copy to clipboard -->
+            <div class="flex justify-end item-end mx-auto my-2">
+              <button
+                class="cursor-pointer bg-indigo-600 px-2 py-1 rounded dark:text-gray-200 text-gray-800"
+                @click="copyToClipboard"
+              >
+                <Icon name="ic:outline-content-copy" class="text-gray-200 h-5 w-5" />
+                <span class="text-white">
+                  {{ isCopied ? "copied" : "copy" }}
+                </span>
+                <!-- loading -->
+              </button>
+            </div>
             <p class="text-lg font-medium mt-4 dark:text-gray-200 text-gray-800">
               Meanings:
             </p>
@@ -185,6 +214,7 @@ export default {
       searchTerm: "",
       wordData: null,
       isLoading: false,
+      isCopied: false,
       isError: false,
     };
   },
@@ -214,6 +244,53 @@ export default {
       }
 
       this.isLoading = false;
+    },
+    /* clear and refresh function */
+    clearSearch() {
+      this.searchTerm = "";
+      this.wordData = null;
+      this.isError = false;
+      this.isLoading = true;
+      //location.reload();
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 1000);
+    },
+    /* how to create a function for copy to clipboard with nuxt js */
+    copyToClipboard() {
+      let copies = `${this.wordData[0].meanings[0].definitions[0].definition} ${
+        this.wordData[0].meanings[0].definitions[0].example
+      }
+                   ${
+                     this.wordData[0].meanings[1].definitions[1].definition
+                       ? this.wordData[0].meanings[1].definitions[1].example
+                       : ""
+                   } ${
+        this.wordData[0].meanings[1].definitions[1].example
+          ? this.wordData[0].meanings[1].definitions[1].example
+          : ""
+      }
+                   ${
+                     this.wordData[0].meanings[1].definitions[2].definition
+                       ? this.wordData[0].meanings[1].definitions[2].example
+                       : ""
+                   } ${
+        this.wordData[0].meanings[1].definitions[2].example
+          ? this.wordData[0].meanings[1].definitions[2].example
+          : ""
+      }`;
+
+      this.isCopied = true;
+      const el = document.createElement("textarea");
+
+      el.value = copies;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setTimeout(() => {
+        this.isCopied = false;
+      }, 1000);
     },
   },
 };
