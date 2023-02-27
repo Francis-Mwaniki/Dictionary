@@ -9,6 +9,7 @@ module.exports = {
     "./plugins/**/*.{js,ts}",
   ],
   darkMode: "class",
+  DEFAULT: colors.slate[900],
 
   theme: {
     extend: {
